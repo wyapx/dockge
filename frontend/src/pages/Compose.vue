@@ -174,39 +174,18 @@
                 <div class="col-lg-6">
                     <!-- Override YAML editor (only show if file exists) -->
                     <div v-if="stack.composeOverrideYAML && stack.composeOverrideYAML.trim() !== ''">
-                    <h4 class="mb-3">{{ stack.composeOverrideFileName || 'compose.override.yaml' }}</h4>
-                    <div class="shadow-box mb-3 editor-box" :class="{'edit-mode' : isEditMode}">
-                        <button v-if="isEditMode" v-b-modal.compose-override-editor-modal class="expand-button">
-                            <font-awesome-icon icon="expand" />
-                        </button>
-                        <code-mirror
-                            ref="overrideEditor"
-                            v-model="stack.composeOverrideYAML"
-                            :extensions="extensions"
-                            minimal
-                            wrap="true"
-                            dark="true"
-                            tab="true"
-                            :disabled="!isEditMode"
-                            :hasFocus="editorFocus"
-                            @change="yamlCodeChange"
-                        />
-                    </div>
-                    <div v-if="isEditMode" class="mb-3">
-                        {{ yamlError }}
-                    </div>
-
-                    <!-- Override modal fullscreen editor (CodeMirror) -->
-                    <BModal id="compose-override-editor-modal" :title="stack.composeOverrideFileName || 'compose.override.yaml'"
-scrollable size="fullscreen" hide-footer>
+                        <h4 class="mb-3">{{ stack.composeOverrideFileName || 'compose.override.yaml' }}</h4>
                         <div class="shadow-box mb-3 editor-box" :class="{'edit-mode' : isEditMode}">
+                            <button v-if="isEditMode" v-b-modal.compose-override-editor-modal class="expand-button">
+                                <font-awesome-icon icon="expand" />
+                            </button>
                             <code-mirror
-                                ref="editorModal"
+                                ref="overrideEditor"
                                 v-model="stack.composeOverrideYAML"
                                 :extensions="extensions"
                                 minimal
                                 wrap="true"
-                                dark="true"
+                                :dark="isDark"
                                 tab="true"
                                 :disabled="!isEditMode"
                                 :hasFocus="editorFocus"
@@ -216,8 +195,30 @@ scrollable size="fullscreen" hide-footer>
                         <div v-if="isEditMode" class="mb-3">
                             {{ yamlError }}
                         </div>
-                    </BModal>
 
+                        <!-- Override modal fullscreen editor (CodeMirror) -->
+                        <BModal
+                            id="compose-override-editor-modal" :title="stack.composeOverrideFileName || 'compose.override.yaml'"
+                            scrollable size="fullscreen" hide-footer
+                        >
+                            <div class="shadow-box mb-3 editor-box" :class="{'edit-mode' : isEditMode}">
+                                <code-mirror
+                                    ref="editorModal"
+                                    v-model="stack.composeOverrideYAML"
+                                    :extensions="extensions"
+                                    minimal
+                                    wrap="true"
+                                    :dark="isDark"
+                                    tab="true"
+                                    :disabled="!isEditMode"
+                                    :hasFocus="editorFocus"
+                                    @change="yamlCodeChange"
+                                />
+                            </div>
+                            <div v-if="isEditMode" class="mb-3">
+                                {{ yamlError }}
+                            </div>
+                        </BModal>
                     </div>
 
                     <h4 class="mb-3">{{ stack.composeFileName }}</h4>
@@ -233,7 +234,7 @@ scrollable size="fullscreen" hide-footer>
                             :extensions="extensions"
                             minimal
                             wrap="true"
-                            dark="true"
+                            :dark="isDark"
                             tab="true"
                             :disabled="!isEditMode"
                             :hasFocus="editorFocus"
@@ -253,7 +254,7 @@ scrollable size="fullscreen" hide-footer>
                                 :extensions="extensions"
                                 minimal
                                 wrap="true"
-                                dark="true"
+                                :dark="isDark"
                                 tab="true"
                                 :disabled="!isEditMode"
                                 :hasFocus="editorFocus"
@@ -278,7 +279,7 @@ scrollable size="fullscreen" hide-footer>
                                 :extensions="extensionsEnv"
                                 minimal
                                 wrap="true"
-                                dark="true"
+                                :dark="isDark"
                                 tab="true"
                                 :disabled="!isEditMode"
                                 :hasFocus="editorFocus"
@@ -296,7 +297,7 @@ scrollable size="fullscreen" hide-footer>
                                 :extensions="extensionsEnv"
                                 minimal
                                 wrap="true"
-                                dark="true"
+                                :dark="isDark"
                                 tab="true"
                                 :disabled="!isEditMode"
                                 :hasFocus="editorFocus"
@@ -448,6 +449,7 @@ export default {
             serviceStatusList: {},
             dockerStats: {},
             isEditMode: false,
+            isDark: false,
             errorDelete: false,
             submitted: false,
             showDeleteDialog: false,
@@ -595,6 +597,8 @@ export default {
         }
     },
     mounted() {
+        this.initTheme();
+        
         if (this.isAdd) {
             this.processing = false;
             this.isEditMode = true;
@@ -666,6 +670,10 @@ export default {
                     this.startServiceStatusTimeout();
                 }
             });
+        },
+
+        initTheme() {
+            this.isDark = document.body.classList.contains("dark");
         },
 
         requestDockerStats() {
